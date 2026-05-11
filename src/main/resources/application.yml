@@ -1,0 +1,33 @@
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    doc-expansion: none
+  api-docs:
+    path: /v3/api-docs
+  default-produces-media-type: application/json
+  paths-to-match: /**
+project:
+  default:
+    url:
+    url_hover:
+  openapi:
+    dev-url: "http://localhost:1111"
+    prod-url: "https://sso.ha-soft.vn"
+spring:
+  application:
+    name: upload-service
+  key:
+    name: 20260511upload
+  profiles:
+    active: "local"
+  main:
+    allow-circular-references: true
+  flyway:
+    enabled: true
+  folder:
+    download: "/download"
+    uploads: "/var/www/public_file/uploads"
+  servlet:
+    multipart:
+      max-file-size: 50000KB
+      max-request-size: 50000KB

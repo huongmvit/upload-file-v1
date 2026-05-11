@@ -1,0 +1,28 @@
+server:
+  port: 1111
+spring:
+  jackson:
+    time-zone: UTC
+  datasource:
+    username: admin_rw
+    password: Zxcvbnm@123
+    url: "jdbc:postgresql://160.250.64.54:5432/upload_db?sslmode=disable"
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 30
+      minimumIdle: 2
+      idle-timeout: 60000
+      max-lifetime: 300000
+      pool-name: hikari-cp
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+  data:
+    redis:
+      password: MDNcVb924a
+      database: 0
+      timeout: 60000
+      host: 160.250.64.54
+      port: 6379
