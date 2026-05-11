@@ -1,0 +1,124 @@
+CREATE TABLE ecm_bl_temp (
+    id BIGSERIAL PRIMARY KEY,
+    ebank_ref VARCHAR(20),
+    transaction_ref VARCHAR(20),
+    upload_id BIGINT,
+    document_id BIGINT,
+    folder_path VARCHAR(100),
+    object_store VARCHAR(100),
+    status VARCHAR(20),
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP(6),
+    object_id VARCHAR(100),
+    is_scan INTEGER
+);
+
+CREATE TABLE ecm_document (
+    id BIGSERIAL PRIMARY KEY,
+    document_id VARCHAR(100),
+    object_store VARCHAR(255),
+    status VARCHAR(30),
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    upload_id BIGINT
+);
+
+CREATE TABLE ecm_document_audit_log (
+    id BIGSERIAL PRIMARY KEY,
+    document_id BIGINT,
+    action VARCHAR(50),
+    filenet_object_id VARCHAR(64),
+    request_by VARCHAR(100),
+    request_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    results VARCHAR(20),
+    message VARCHAR(1000)
+);
+
+CREATE TABLE ecm_document_delete (
+    id BIGSERIAL PRIMARY KEY,
+    document_id VARCHAR(100),
+    date_number NUMERIC(5,0),
+    date_delete TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    status VARCHAR(20),
+    object_store VARCHAR(255),
+    created_by VARCHAR(100),
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP(6),
+    deleted_by VARCHAR(100),
+    updated_at TIMESTAMP(6),
+    updated_by VARCHAR(100),
+    retry INTEGER DEFAULT 0
+);
+
+CREATE TABLE ecm_document_error_log (
+    id BIGSERIAL PRIMARY KEY,
+    url_api VARCHAR(500),
+    action VARCHAR(50),
+    error_code VARCHAR(100),
+    status VARCHAR(20),
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    last_retry_at TIMESTAMP(6),
+    trace_id VARCHAR(100),
+    error_message TEXT,
+    retry_count INTEGER DEFAULT 0
+);
+
+CREATE TABLE ecm_document_folder_mapping (
+    id BIGSERIAL PRIMARY KEY,
+    document_id BIGINT,
+    filenet_folder_id VARCHAR(64),
+    filenet_folder_path VARCHAR(500),
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE ecm_document_metadata (
+    id BIGSERIAL PRIMARY KEY,
+    ref_id BIGINT,
+    meta_key VARCHAR(100),
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    type VARCHAR(20),
+    meta_value BYTEA
+);
+
+CREATE TABLE ecm_folder (
+    id BIGSERIAL PRIMARY KEY,
+    business_type VARCHAR(50),
+    cif VARCHAR(50),
+    folder_id VARCHAR(100),
+    folder_path VARCHAR(255),
+    status VARCHAR(20),
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    folder_path_sub VARCHAR(255),
+    is_exist INTEGER DEFAULT 0,
+    upload_id BIGINT,
+    object_id VARCHAR(100),
+    gu_id VARCHAR(100)
+);
+
+CREATE TABLE ecm_upload (
+    id BIGSERIAL PRIMARY KEY,
+    trace_id VARCHAR(100),
+    document_class VARCHAR(255),
+    mime_type VARCHAR(100),
+    upload_status VARCHAR(20),
+    created_by VARCHAR(100),
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    object_store VARCHAR(100),
+    file_draft VARCHAR(20),
+    ocr VARCHAR(20),
+    folder_path VARCHAR(255),
+    document VARCHAR(255),
+    file_size NUMERIC(12,0) DEFAULT 0,
+    properties TEXT
+);
+
+CREATE TABLE ecm_upload_chunk (
+    id BIGSERIAL PRIMARY KEY,
+    document_id BIGINT,
+    chunk_index NUMERIC(10,0),
+    chunk_size_mb NUMERIC(10,0),
+    status VARCHAR(20),
+    created_at TIMESTAMP(6) DEFAULT CURRENT_TIMESTAMP,
+    upload_id BIGINT
+);
