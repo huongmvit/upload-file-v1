@@ -23,10 +23,10 @@ COPY --from=builder /build/target/*.jar app.jar
 
 ENV TZ="Asia/Ho_Chi_Minh"
 ENV LOG_PATH="/app/logs"
-ENV SERVICE_NAME="iam-service"
+ENV SERVICE_NAME="upload-service"
 
 RUN mkdir -p /app/logs
 
-EXPOSE 8899
+EXPOSE 6000
 
 ENTRYPOINT ["java", "-jar", "app.jar"]

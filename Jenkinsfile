@@ -1,5 +1,5 @@
 node {
-    def project_name = "iam-service"
+    def project_name = "upload-service"
     def image_version = "1.0.0"
     def finalImage = "${project_name}:${image_version}"
 

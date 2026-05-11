@@ -1,4 +1,4 @@
-package com.vn.iam.constant;
+package com.upload.constant;
 
 public class UploadConstant {
 

@@ -13,10 +13,10 @@
     </parent>
 
     <groupId>com.vn</groupId>
-    <artifactId>iam-service</artifactId>
+    <artifactId>upload-service</artifactId>
     <version>0.0.1</version>
-    <name>iam-service</name>
-    <description>iam-service</description>
+    <name>upload-service</name>
+    <description>upload-service</description>
 
     <properties>
         <java.version>21</java.version>

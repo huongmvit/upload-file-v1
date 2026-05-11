@@ -1,4 +1,4 @@
-package com.vn.iam.api.v1.event;
+package com.upload.api.v1.event;
 
 import com.vn.lib.common.resp.ResponseApi;
 import org.springframework.web.bind.annotation.GetMapping;

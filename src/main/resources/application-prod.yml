@@ -1,23 +1,12 @@
 server:
-  port: 8899
-log:
-  kafka:
-    bootstrap-servers: 160.250.64.54:9092
-    topic: logs-data
-    groupId: logs-data-id
-    offset: earliest
-    io: logs-input-output
-    aspect: true
-    app-name: iam-service
-    input: true
-    output: true
+  port: 6000
 spring:
   jackson:
     time-zone: UTC
   datasource:
     username: admin_rw
     password: Zxcvbnm@123
-    url: "jdbc:postgresql://160.250.64.54:5432/iam_service_dev?sslmode=disable"
+    url: "jdbc:postgresql://160.250.64.54:5432/upload_db?sslmode=disable"
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 30
@@ -35,12 +24,5 @@ spring:
       password: MDNcVb924a
       database: 0
       timeout: 60000
-      host: all_redis_1
+      host: 160.250.64.54
       port: 6379
-keycloak:
-  realm: cha
-  resource: system-login
-  auth-server-url: https://keycloak.ha-soft.vn
-  client-secret: luzrl6E3apQb6aoZy8mPN0z3Az8IVVRZ
-  user: admin_cha
-  password: Hanoi@456

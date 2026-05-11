@@ -11,7 +11,7 @@ project:
     url:
     url_hover:
   openapi:
-    dev-url: "http://localhost:1111"
+    dev-url: "http://localhost:6000"
     prod-url: "https://sso.ha-soft.vn"
 spring:
   application:

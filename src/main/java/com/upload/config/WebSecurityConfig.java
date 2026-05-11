@@ -1,4 +1,4 @@
-package com.vn.iam.config;
+package com.upload.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
