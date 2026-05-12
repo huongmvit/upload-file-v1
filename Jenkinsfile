@@ -1,45 +1,54 @@
 node {
-    def project_name = "upload-service"
-    def image_version = "1.0.0"
-    def finalImage = "${project_name}:${image_version}"
 
-    try {
-        notifyBuild('STARTED')
+    // ===== CONFIG =====
+    def PROJECT_NAME = "upload-service"
+    def PORT = "9996"
+    def IMAGE_VERSION = "1.0.0"
+    def NETWORK = "all_database_app"
 
-        stage('Clone repository') {
-            checkout scm
+    script {
+
+        // ===== NOTIFY (Closure – an toàn CPS) =====
+        def notifyBuild = { status ->
+            echo "===== BUILD STATUS: ${status} ====="
         }
 
-        stage('Build Docker Image (multi-stage)') {
-            echo "Building final Docker image with multi-stage Dockerfile..."
-            app = docker.build(finalImage, "-f Dockerfile .")
+        try {
+            notifyBuild("STARTED")
+
+            stage('Checkout') {
+                checkout scm
+            }
+
+            stage('Build Docker Image') {
+                configFileProvider([
+                    configFile(fileId: 'maven-settings-cha', targetLocation: 'settings.xml')
+                ]) {
+                    sh "docker build -t ${PROJECT_NAME}:${IMAGE_VERSION} ."
+                }
+            }
+
+            stage('Deploy') {
+                sh """
+                    docker stop ${PROJECT_NAME} || true
+                    docker rm ${PROJECT_NAME} || true
+
+                    docker run -d \
+                      --name ${PROJECT_NAME} \
+                      --network ${NETWORK} \
+                      -p ${PORT}:${PORT} \
+                      -v /var/logs/${PROJECT_NAME}:/var/logs/${PROJECT_NAME} \
+                      -e SPRING_PROFILES_ACTIVE=prod \
+                      ${PROJECT_NAME}:${IMAGE_VERSION}
+                """
+            }
+
+            notifyBuild("SUCCESS")
+
+        } catch (err) {
+            currentBuild.result = "FAILED"
+            notifyBuild("FAILED")
+            throw err
         }
-
-        stage('Deploy Container') {
-            echo "Deploying container..."
-
-            sh "docker stop ${project_name} || true"
-            sh "docker rm ${project_name} || true"
-
-            sh """
-                docker run -d \
-                    --name ${project_name} \
-                    --network all_database_app \
-                    -p 8899:8899 \
-                    ${finalImage}
-            """
-        }
-
-    } catch (e) {
-        currentBuild.result = "FAILED"
-        throw e
-    } finally {
-        notifyBuild(currentBuild.result)
     }
-}
-
-def notifyBuild(String buildStatus = 'STARTED') {
-    buildStatus = buildStatus ?: 'SUCCESSFUL'
-
-    echo "Build status: ${buildStatus}"
 }

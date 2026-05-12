@@ -1,32 +1,27 @@
-# =============================
-# Stage 1: Build JAR
-# =============================
-FROM eclipse-temurin:21-jdk-alpine AS builder
-
-RUN apk add --no-cache maven
+# ===== BUILD STAGE =====
+FROM eclipse-temurin:21-jdk-alpine AS build
 WORKDIR /build
 
-# Copy custom settings
+RUN apk add --no-cache maven
+
+# 👉 copy settings.xml vào đúng chỗ Maven dùng
 COPY settings.xml /root/.m2/settings.xml
 
-COPY . .
+# copy pom trước để cache layer
+COPY pom.xml .
+RUN mvn -B -DskipTests dependency:go-offline
 
-RUN mvn clean package -Dmaven.test.skip=true
+# copy source sau
+COPY src ./src
+RUN mvn -B -DskipTests package
 
-# =============================
-# Stage 2: Runtime
-# =============================
+
+# ===== RUNTIME STAGE =====
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
-COPY --from=builder /build/target/*.jar app.jar
+ENV TZ=Asia/Ho_Chi_Minh
+COPY --from=build /build/target/*.jar app.jar
 
-ENV TZ="Asia/Ho_Chi_Minh"
-ENV LOG_PATH="/app/logs"
-ENV SERVICE_NAME="upload-service"
-
-RUN mkdir -p /app/logs
-
-EXPOSE 6000
-
-ENTRYPOINT ["java", "-jar", "app.jar"]
+EXPOSE 9996
+ENTRYPOINT ["java","-jar","app.jar"]
