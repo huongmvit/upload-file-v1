@@ -11,8 +11,8 @@ project:
     url:
     url_hover:
   openapi:
-    dev-url: "http://localhost:6000"
-    prod-url: "https://sso.ha-soft.vn"
+    dev-url: "http://localhost:9996"
+    prod-url: "https://cloud.ha-soft.vn"
 spring:
   application:
     name: upload-service

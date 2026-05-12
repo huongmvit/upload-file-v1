@@ -28,45 +28,74 @@ public class AppFilter extends OncePerRequestFilter {
     private final CMRedisService redisService;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    protected void doFilterInternal(
+            HttpServletRequest request,
+            HttpServletResponse response,
+            FilterChain filterChain
+    ) throws ServletException, IOException {
+
         try {
+
             String header = request.getHeader(CMHttpHeaders.AUTHORIZATION);
-            String accessToken = UserRedis.USER + header.substring(CMHttpHeaders.PREFIX.length()).trim();
+
+            // Không có token -> cho đi tiếp
+            if (header == null || !header.startsWith(CMHttpHeaders.PREFIX)) {
+                filterChain.doFilter(request, response);
+                return;
+            }
+
+            String accessToken =
+                    UserRedis.USER +
+                            header.substring(CMHttpHeaders.PREFIX.length()).trim();
+
             String redisJson = redisService.getFromKey(accessToken);
+
             if (redisJson != null) {
+
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.registerModule(new JavaTimeModule());
-                UserRedisDto dto = mapper.readValue(redisJson, UserRedisDto.class);
-                if (dto == null) {
-                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                    return;
-                }
+
+                UserRedisDto dto =
+                        mapper.readValue(redisJson, UserRedisDto.class);
+
                 List<SimpleGrantedAuthority> authorities = List.of(
                         new SimpleGrantedAuthority("SUPER_ADMIN")
                 );
 
                 UsernamePasswordAuthenticationToken auth =
                         new UsernamePasswordAuthenticationToken(
-                                dto,              // principal
-                                accessToken,      // 🔥 credentials
+                                dto,
+                                accessToken,
                                 authorities
                         );
 
-//                UserRedisDto userRedisDto = SecurityUtils.getCurrentUser();
-                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                auth.setDetails(
+                        new WebAuthenticationDetailsSource()
+                                .buildDetails(request)
+                );
+
+                SecurityContextHolder.getContext()
+                        .setAuthentication(auth);
             }
 
-        } finally {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-        }
+            // 🔥 Quan trọng
+            filterChain.doFilter(request, response);
 
+        } catch (Exception e) {
+
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+
+        }
     }
 
     @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+
         String path = request.getServletPath();
+
         return path.startsWith("/swagger-ui")
-                || path.startsWith("/v3/api-docs");
+                || path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-resources")
+                || path.startsWith("/webjars");
     }
 }

@@ -33,12 +33,18 @@ node {
                     docker stop ${PROJECT_NAME} || true
                     docker rm ${PROJECT_NAME} || true
 
+                    mkdir -p /data/uploads/${PROJECT_NAME}
+                    mkdir -p /var/logs/${PROJECT_NAME}
+
                     docker run -d \
+                      --restart unless-stopped \
                       --name ${PROJECT_NAME} \
                       --network ${NETWORK} \
                       -p ${PORT}:${PORT} \
                       -v /var/logs/${PROJECT_NAME}:/var/logs/${PROJECT_NAME} \
+                      -v /data/uploads/${PROJECT_NAME}:/app/uploads \
                       -e SPRING_PROFILES_ACTIVE=prod \
+                      -e TZ=Asia/Ho_Chi_Minh \
                       ${PROJECT_NAME}:${IMAGE_VERSION}
                 """
             }

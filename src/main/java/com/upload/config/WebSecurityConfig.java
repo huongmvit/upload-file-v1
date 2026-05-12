@@ -3,6 +3,7 @@ package com.upload.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -33,17 +34,23 @@ public class WebSecurityConfig {
 
                 .addFilterBefore(jwtAuthorizationFilter, UsernamePasswordAuthenticationFilter.class)
                 .addFilterAfter(permissionFilter, AppFilter.class)
-
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(
-                                "/v3/api-docs/**",
-                                "/swagger-ui/**"
-                        ).permitAll()
-                        .anyRequest().permitAll()
-                );
+                        .requestMatchers(SWAGGER_WHITELIST).permitAll()
+                        .anyRequest().authenticated()
+                )
+                .formLogin(form -> form.disable())
+                .httpBasic(basic -> basic.disable());
 
         return http.build();
     }
+
+    private static final String[] SWAGGER_WHITELIST = {
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/swagger-ui.html",
+            "/webjars/**",
+            "/swagger-resources/**"
+    };
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
@@ -51,8 +58,8 @@ public class WebSecurityConfig {
 
         configuration.setAllowedOrigins(Arrays.asList(
                 "http://localhost:8080",
-                "http://bsdv.vn",
-                "https://bsdv.vn"
+                "https://cloud.ha-soft.vn",
+                "http://cloud.ha-soft.vn"
         ));
 
         configuration.setAllowCredentials(true);

@@ -65,7 +65,7 @@ public class PermissionFilter extends OncePerRequestFilter {
             return;
         }
         if (user == null) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
         String roleKey = "SUPER_ADMIN";
