@@ -13,5 +13,5 @@ public class CreateFileResp {
     private Long fileId;
     private String fileUrl;
     private String folderPath;
-
+    private String fileName;
 }

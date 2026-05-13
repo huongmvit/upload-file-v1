@@ -1,4 +1,4 @@
-package com.upload.api.v1.files.enums;
+package com.upload.api.v1.enums;
 
 public enum UploadChunkStatus {
     PENDING,

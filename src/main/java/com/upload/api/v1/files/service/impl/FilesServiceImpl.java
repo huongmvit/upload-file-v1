@@ -1,18 +1,40 @@
 package com.upload.api.v1.files.service.impl;
 
+import com.upload.api.v1.ecm_folder.entity.EcmFolder;
+import com.upload.api.v1.ecm_folder.mapper.EcmFolderMapper;
+import com.upload.api.v1.ecm_folder.repo.EcmFolderRepos;
+import com.upload.api.v1.ecm_upload.entity.EcmUpload;
+import com.upload.api.v1.ecm_upload.mapper.EcmUploadMapper;
+import com.upload.api.v1.ecm_upload.repo.EcmUploadRepos;
+import com.upload.api.v1.enums.FolderStatus;
 import com.upload.api.v1.files.req.CreateFolderReq;
 import com.upload.api.v1.files.req.CreateMultiDocumentReq;
 import com.upload.api.v1.files.req.CreateOneDocumentReq;
 import com.upload.api.v1.files.resp.CreateFileResp;
 import com.upload.api.v1.files.service.FilesService;
+import com.upload.constant.UploadConstant;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @RequiredArgsConstructor
 @Service
 public class FilesServiceImpl implements FilesService {
+
+    private final EcmUploadRepos ecmUploadRepos;
+    private final EcmUploadMapper ecmUploadMapper;
+
+    private final EcmFolderRepos ecmFolderRepos;
+    private final EcmFolderMapper ecmFolderMapper;
 
     @Override
     public CreateFileResp upload(CreateOneDocumentReq req) {
@@ -21,6 +43,23 @@ public class FilesServiceImpl implements FilesService {
 
     @Override
     public List<CreateFileResp> uploads(CreateMultiDocumentReq req) {
+        MultipartFile[] files = req.getDocuments();
+//        String traceId = TraceContext.get();
+        String traceId = "";
+        if (files == null) return null;
+        List<CreateFileResp> respAll = new ArrayList<>();
+        for (MultipartFile file : files) {
+            CreateOneDocumentReq createResp = new CreateOneDocumentReq();
+            createResp.setDocuments(file);
+            createResp.setDocumentClass(req.getDocumentClass());
+            createResp.setOcr(req.getOcr());
+            createResp.setFileDraft(req.getFileDraft());
+            createResp.setFolderPath(req.getFolderPath());
+            createResp.setProperties(req.getProperties());
+            CreateFileResp resp = saveOneFile(req, traceId);
+            respAll.add(resp);
+        }
+        return respAll;
         return List.of();
     }
 
@@ -28,6 +67,59 @@ public class FilesServiceImpl implements FilesService {
     public Boolean createFolder(CreateFolderReq req) {
         return null;
     }
+
+    private CreateFileResp saveOneFile(CreateOneDocumentReq req, String traceId) {
+        // Lưu thông tin file upload
+        EcmUpload ecmUpload = ecmUploadMapper.toEntity(req);
+        ecmUpload.setTraceId(traceId);
+        ecmUpload.setObjectStore(UUID.randomUUID().toString());
+        EcmUpload saveUpload = ecmUploadRepos.save(ecmUpload);
+        // Lưu thông tin folder
+        saveEcmFolder(saveUpload);
+        CreateFileResp resp = new CreateFileResp();
+        resp.setFileName(saveUpload.getDocument());
+        return resp;
+    }
+
+    private void saveEcmFolder(EcmUpload ecmUpload) {
+        EcmFolder ecmFolder = new EcmFolder();
+        ecmFolder.setFolderPath(ecmUpload.getFolderPath());
+//        ecmFolder.setUploadId(ecmUpload.getId());
+        ecmFolder.setIsExist(UploadConstant.IS_NOT_EXIST);
+        ecmFolder.setStatus(FolderStatus.INIT);
+        ecmFolderRepos.save(ecmFolder);
+    }
+
+    private Boolean createFolder(String folder) {
+        File directoryUpload = new File(folder.trim());
+        if (!directoryUpload.exists()) {
+            directoryUpload.mkdir();
+        }
+
+        File directoryUser = new File(this.folders.concat(AppContants.STRING_SOURCE + folder));
+        if (!directoryUser.exists()) {
+            directoryUser.mkdir();
+        }
+
+        String month = AppUtils.getYYYYMM();
+        Path root = Paths.get(this.folders.concat(AppContants.STRING_SOURCE + folder.concat(AppContants.STRING_SOURCE + month)));
+        File directoryRoot = new File(this.folders.concat(AppContants.STRING_SOURCE + folder.concat(AppContants.STRING_SOURCE + month)));
+        if (!directoryRoot.exists()) {
+            directoryRoot.mkdir();
+        }
+        return true;
+    }
+
+    public String save(MultipartFile file, String folder, String fileName) throws Exception {
+        try {
+
+            Files.copy(file.getInputStream(), root.resolve(fileName), StandardCopyOption.REPLACE_EXISTING);
+            return "uploads" + "/" + folder + "/" + month;
+        } catch (Exception ex) {
+            throw new Exception(AppError.MSGE0967);
+        }
+    }
+
 }
 //
 //package com.vietcombank.tf.integration.service.impl;
@@ -264,7 +356,7 @@ public class FilesServiceImpl implements FilesService {
 //
 //    @Override
 //    public void deleteAll() {
-//// 1) Lấy danh sách Temp delete
+/// / 1) Lấy danh sách Temp delete
 //        List<EcmBlTemp> tempDelete = ecmBlTempRepository.findAllByIsScanFalseOrIsScanIsNull();
 //        // 2) Xử lý
 //        if (!tempDelete.isEmpty()) {

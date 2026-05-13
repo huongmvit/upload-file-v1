@@ -26,6 +26,7 @@ public class UploadConstant {
     public static String BRAND_ID = "TokenSession";
     public static String USER_NAME = "username";
     public static String FORM_GRANT_TYPE = "grant_type";
-
+    public static Integer IS_EXIST = 1;
+    public static Integer IS_NOT_EXIST = 0;
 
 }
