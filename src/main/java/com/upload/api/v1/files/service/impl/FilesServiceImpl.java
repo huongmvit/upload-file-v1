@@ -43,7 +43,7 @@ import java.util.regex.Pattern;
 @Service
 public class FilesServiceImpl implements FilesService {
 
-    @Value( "${spring.folder.uploads}")
+    @Value("${spring.folder.uploads}")
     private String rootUpload;
 
     private final FilesMapper filesMapper;
@@ -82,13 +82,13 @@ public class FilesServiceImpl implements FilesService {
 
     private CreateFileResp saveOneFile(CreateOneDocumentReq req) {
 
-        if(req.getOcr() == null) {
+        if (req.getOcr() == null) {
             req.setOcr("Y");
         }
-        if(req.getFileDraft() == null) {
+        if (req.getFileDraft() == null) {
             req.setOcr("N");
         }
-        if(req.getDocumentClass() == null) {
+        if (req.getDocumentClass() == null) {
             req.setOcr("ALL");
         }
 
@@ -107,22 +107,20 @@ public class FilesServiceImpl implements FilesService {
         ecmUploadRepos.save(ecmUpload);
 
         // Lưu file
-        SaveFileResp saveFileResp = save(req.getDocuments(), ecmFolder.getFolderPath(), ecmUpload.getDocument());
+        String folder = rootUpload.concat(aesKeyDto.getServiceName().concat(ecmFolder.getFolderPath()));
+        SaveFileResp saveFileResp = save(req.getDocuments(), folder, ecmUpload.getDocument());
         CreateFileResp resp = new CreateFileResp();
         resp.setFileName(saveFileResp.getFileName());
-        resp.setFolderPath(saveFileResp.getFolderPath());
+        resp.setFolderPath(ecmFolder.getFolderPath());
         resp.setFileId(ecmUpload.getId());
         resp.setFileUrl(ecmUpload.getUrl());
         return resp;
     }
 
     private EcmFolder saveEcmFolder(String folderPath, AesKeyDto aesKeyDto) {
-        if(folderPath == null || folderPath.isBlank()) {
+        if (folderPath == null || folderPath.isBlank()) {
             LocalDate now = LocalDate.now();
-            String newFolder = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-            folderPath =  rootUpload.concat(aesKeyDto.getServiceName().concat(newFolder));
-        } else {
-            folderPath = rootUpload.concat(aesKeyDto.getServiceName().concat(folderPath));
+            folderPath =  now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
         }
         folderPath = folderPath.replaceAll("(?<!:)/{2,}", "/");
         EcmFolder ecmFolder = ecmFolderMapper.mapEcmUploadToEcmFolder(folderPath, aesKeyDto);
@@ -145,12 +143,12 @@ public class FilesServiceImpl implements FilesService {
             if (directory.exists()) {
                 return true;
             }
-            logError("Upload","save", "SUCCESS", folderPath);
+            logError("Upload", "save", "SUCCESS", folderPath);
             // Tạo nhiều cấp folder
             return directory.mkdirs();
         } catch (Exception ex) {
             ex.printStackTrace();
-            logError("Upload","createFolder", "ERROR", ex.getMessage());
+            logError("Upload", "createFolder", "ERROR", ex.getMessage());
             return false;
         }
     }
@@ -196,11 +194,11 @@ public class FilesServiceImpl implements FilesService {
             saveFileResp.setFileName(newFileName);
             saveFileResp.setFolderPath(folder);
             // Return path
-            logError("Upload","save", "SUCCESS", filePath.toString());
+            logError("Upload", "save", "SUCCESS", filePath.toString());
             return saveFileResp;
         } catch (Exception ex) {
             ex.printStackTrace();
-            logError("Upload","save", "ERROR", ex.getMessage());
+            logError("Upload", "save", "ERROR", ex.getMessage());
         }
         return saveFileResp;
     }
