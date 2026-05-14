@@ -1,17 +1,12 @@
 package com.upload.api.v1.ecm_audit_log.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.upload.api.v1.enums.AuditStatus;
+import jakarta.persistence.*;
+
 import java.io.Serializable;
 import java.time.Instant;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import lombok.*;
 
 @Entity
 @Table(
@@ -21,6 +16,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class EcmAuditLog implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -53,7 +49,8 @@ public class EcmAuditLog implements Serializable {
     @Column(
             name = "status"
     )
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private AuditStatus status;
 
     @Column(
             name = "created_at"
@@ -78,5 +75,5 @@ public class EcmAuditLog implements Serializable {
     @Column(
             name = "retry_count"
     )
-    private String retryCount;
+    private Integer retryCount;
 }

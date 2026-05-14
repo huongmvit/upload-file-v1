@@ -1,11 +1,14 @@
 package com.upload.api.v1.files.service.impl;
 
+import com.upload.api.v1.ecm_audit_log.entity.EcmAuditLog;
+import com.upload.api.v1.ecm_audit_log.repo.EcmAuditLogRepos;
 import com.upload.api.v1.ecm_folder.entity.EcmFolder;
 import com.upload.api.v1.ecm_folder.mapper.EcmFolderMapper;
 import com.upload.api.v1.ecm_folder.repo.EcmFolderRepos;
 import com.upload.api.v1.ecm_upload.entity.EcmUpload;
 import com.upload.api.v1.ecm_upload.mapper.EcmUploadMapper;
 import com.upload.api.v1.ecm_upload.repo.EcmUploadRepos;
+import com.upload.api.v1.enums.AuditStatus;
 import com.upload.api.v1.files.mapper.FilesMapper;
 import com.upload.api.v1.files.req.CreateFolderReq;
 import com.upload.api.v1.files.req.CreateMultiDocumentReq;
@@ -40,6 +43,8 @@ public class FilesServiceImpl implements FilesService {
 
     private final EcmFolderRepos ecmFolderRepos;
     private final EcmFolderMapper ecmFolderMapper;
+
+    private final EcmAuditLogRepos ecmAuditLogRepos;
 
     @Override
     public CreateFileResp upload(CreateOneDocumentReq req) {
@@ -111,8 +116,9 @@ public class FilesServiceImpl implements FilesService {
             }
             // Tạo nhiều cấp folder
             return directory.mkdirs();
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            logError("Upload","createFolder", "ERROR", ex.getMessage());
             return false;
         }
     }
@@ -151,8 +157,28 @@ public class FilesServiceImpl implements FilesService {
             return saveFileResp;
         } catch (Exception ex) {
             ex.printStackTrace();
+            logError("Upload","save", "ERROR", ex.getMessage());
         }
         return saveFileResp;
+    }
+
+    public void logError(String urlApi,
+                         String action,
+                         String errorCode,
+                         String errorMessage) {
+        String traceId = TraceContext.getTrace();
+        EcmAuditLog log = EcmAuditLog.builder()
+                .urlApi(urlApi)
+                .traceId(traceId)
+                .action(action)
+                .errorCode(errorCode)
+                .errorMessage(errorMessage)
+                .retryCount(0)
+                .status(AuditStatus.NEW)
+                .lastRetryAt(null)
+                .build();
+
+        ecmAuditLogRepos.save(log);
     }
 
 }

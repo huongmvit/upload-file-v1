@@ -24,5 +24,6 @@ spring:
       password: MDNcVb924a
       database: 0
       timeout: 60000
-      host: 160.250.64.54
+      host: all_redis_1
       port: 6379
+      appName: uploadService
