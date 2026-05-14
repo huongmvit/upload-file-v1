@@ -56,9 +56,9 @@ public class EcmUploadMapperImpl implements EcmUploadMapper {
                 .ocr(req.getOcr())
                 .folderPath(req.getFolderPath())
 //                .url(url)
-//                .tenantId(tenantId)
-//                .storeId(storeId)
-//                .brandId(brandId)
+                .tenantId(0L)
+                .storeId(0L)
+                .brandId(0L)
                 .build();
         return ecmUpload;
     }

@@ -37,9 +37,9 @@ public class PermissionFilter extends OncePerRequestFilter {
     };
 
     private static final String[] AUTH_MEMBER_ADMIN = {
-            "/api/file/avartar/uploads",
-            "/api/file/room/uploads",
-            "/api/file/uploads"
+            "/api/v1/file/avatar/uploads",
+            "/api/v1/file/upload",
+            "/api/v1/file/uploads"
     };
 
     @Override

@@ -11,7 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/v1/orders")
+@RequestMapping("/api/v1/file")
 @RequiredArgsConstructor
 public class FilesController {
     private final FilesService filesService;

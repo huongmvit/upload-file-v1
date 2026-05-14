@@ -24,6 +24,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,9 +85,12 @@ public class FilesServiceImpl implements FilesService {
     }
 
     private EcmFolder saveEcmFolder(String folderPath) {
+        if(folderPath == null || folderPath.isBlank()) {
+            LocalDate now = LocalDate.now();
+            folderPath = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+        }
         EcmFolder ecmFolder = ecmFolderMapper.mapEcmUploadToEcmFolder(folderPath);
-        String folder = ecmFolder.getFolderPath().concat(ecmFolder.getFolderPathSub());
-        if (createFolder(folder)) {
+        if (createFolder(folderPath)) {
             ecmFolderRepos.save(ecmFolder);
         } else {
             ecmFolder.setIsExist(UploadConstant.IS_NOT_EXIST);

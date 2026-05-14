@@ -44,6 +44,9 @@ public class EcmFolderMapperImpl implements EcmFolderMapper {
         ecmFolder.setFolderPath(folderPath);
         ecmFolder.setIsExist(UploadConstant.IS_NOT_EXIST);
         ecmFolder.setStatus(FolderStatus.INIT);
+        ecmFolder.setTenantId(0L);
+        ecmFolder.setStoreId(0L);
+        ecmFolder.setBrandId(0L);
         return ecmFolder;
     }
 }
