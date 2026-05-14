@@ -91,10 +91,10 @@ public class FilesServiceImpl implements FilesService {
         if (req.getDocumentClass() == null) {
             req.setOcr("ALL");
         }
-
+        CreateFileResp resp = new CreateFileResp();
         String traceId = TraceContext.getTrace();
         String merchant = TraceContext.getMerchant();
-        AesKeyDto aesKeyDto = AesUtil.encryptDto(merchant);
+        AesKeyDto aesKeyDto = AesUtil.encryptDto(AesUtil.decrypt(merchant));
         EcmAuth ecmAuth = ecmAuthRepos.findTopByClientSecret(merchant);
 
         // Lưu thông tin folder
@@ -105,13 +105,19 @@ public class FilesServiceImpl implements FilesService {
         ecmUpload.setUrl(ecmAuth.getServerUrl());
         ecmUpload.setFolderPath(ecmFolder.getFolderPath());
         ecmUploadRepos.save(ecmUpload);
-
+        resp.setFolderPath(ecmFolder.getFolderPath());
         // Lưu file
         String folder = rootUpload.concat(aesKeyDto.getServiceName().concat(ecmFolder.getFolderPath()));
+        if (createFolder(folder)) {
+            ecmFolderRepos.save(ecmFolder);
+        } else {
+            ecmFolder.setIsExist(UploadConstant.IS_NOT_EXIST);
+            ecmFolderRepos.save(ecmFolder);
+        }
         SaveFileResp saveFileResp = save(req.getDocuments(), folder, ecmUpload.getDocument());
-        CreateFileResp resp = new CreateFileResp();
+
         resp.setFileName(saveFileResp.getFileName());
-        resp.setFolderPath(ecmFolder.getFolderPath());
+
         resp.setFileId(ecmUpload.getId());
         resp.setFileUrl(ecmUpload.getUrl());
         return resp;
@@ -120,17 +126,10 @@ public class FilesServiceImpl implements FilesService {
     private EcmFolder saveEcmFolder(String folderPath, AesKeyDto aesKeyDto) {
         if (folderPath == null || folderPath.isBlank()) {
             LocalDate now = LocalDate.now();
-            folderPath =  now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+            folderPath = "/" + now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
         }
         folderPath = folderPath.replaceAll("(?<!:)/{2,}", "/");
-        EcmFolder ecmFolder = ecmFolderMapper.mapEcmUploadToEcmFolder(folderPath, aesKeyDto);
-        if (createFolder(folderPath)) {
-            ecmFolderRepos.save(ecmFolder);
-        } else {
-            ecmFolder.setIsExist(UploadConstant.IS_NOT_EXIST);
-            ecmFolderRepos.save(ecmFolder);
-        }
-        return ecmFolder;
+        return ecmFolderMapper.mapEcmUploadToEcmFolder(folderPath, aesKeyDto);
     }
 
     private boolean createFolder(String folderPath) {
@@ -138,14 +137,16 @@ public class FilesServiceImpl implements FilesService {
             return false;
         }
         try {
-            File directory = new File(folderPath.trim());
-            // Đã tồn tại
-            if (directory.exists()) {
-                return true;
-            }
+//            File directory = new File(folderPath.trim());
+//            // Đã tồn tại
+//            if (directory.exists()) {
+//                return true;
+//            }
+            Path path = Paths.get(folderPath);
+            Files.createDirectories(path);
             logError("Upload", "save", "SUCCESS", folderPath);
             // Tạo nhiều cấp folder
-            return directory.mkdirs();
+            return true;
         } catch (Exception ex) {
             ex.printStackTrace();
             logError("Upload", "createFolder", "ERROR", ex.getMessage());
