@@ -19,6 +19,7 @@ import com.upload.api.v1.files.service.FilesService;
 import com.upload.utils.TraceContext;
 import com.upload.constant.UploadConstant;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -37,6 +38,9 @@ import java.util.regex.Pattern;
 @RequiredArgsConstructor
 @Service
 public class FilesServiceImpl implements FilesService {
+
+    @Value( "${spring.folder.uploads}")
+    private String rootUpload;
 
     private final FilesMapper filesMapper;
 
@@ -94,8 +98,12 @@ public class FilesServiceImpl implements FilesService {
     private EcmFolder saveEcmFolder(String folderPath) {
         if(folderPath == null || folderPath.isBlank()) {
             LocalDate now = LocalDate.now();
-            folderPath = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+            String newFolder = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+            folderPath = rootUpload.concat(newFolder);
+        } else {
+            folderPath = rootUpload.concat(folderPath);
         }
+        folderPath = folderPath.replaceAll("(?<!:)/{2,}", "/");
         EcmFolder ecmFolder = ecmFolderMapper.mapEcmUploadToEcmFolder(folderPath);
         if (createFolder(folderPath)) {
             ecmFolderRepos.save(ecmFolder);
