@@ -136,6 +136,8 @@ public class FilesServiceImpl implements FilesService {
         if (folderPath == null || folderPath.isBlank()) {
             return false;
         }
+        String merchant = TraceContext.getMerchant();
+        AesKeyDto aesKeyDto = AesUtil.encryptDto(AesUtil.decrypt(merchant));
         try {
 //            File directory = new File(folderPath.trim());
 //            // Đã tồn tại
@@ -144,18 +146,21 @@ public class FilesServiceImpl implements FilesService {
 //            }
             Path path = Paths.get(folderPath);
             Files.createDirectories(path);
-            logError("Upload", "save", "SUCCESS", folderPath);
+
+            logError(aesKeyDto.getServiceName(), "save", "SUCCESS", folderPath);
             // Tạo nhiều cấp folder
             return true;
         } catch (Exception ex) {
             ex.printStackTrace();
-            logError("Upload", "createFolder", "ERROR", ex.getMessage());
+            logError(aesKeyDto.getServiceName(), "createFolder", "ERROR", ex.getMessage());
             return false;
         }
     }
 
     public SaveFileResp save(MultipartFile file, String folder, String fileName) {
         SaveFileResp saveFileResp = new SaveFileResp();
+        String merchant = TraceContext.getMerchant();
+        AesKeyDto aesKeyDto = AesUtil.encryptDto(AesUtil.decrypt(merchant));
         try {
             // Validate
             if (file == null || file.isEmpty()) {
@@ -195,11 +200,11 @@ public class FilesServiceImpl implements FilesService {
             saveFileResp.setFileName(newFileName);
             saveFileResp.setFolderPath(folder);
             // Return path
-            logError("Upload", "save", "SUCCESS", filePath.toString());
+            logError(aesKeyDto.getServiceName(), "save", "SUCCESS", filePath.toString());
             return saveFileResp;
         } catch (Exception ex) {
             ex.printStackTrace();
-            logError("Upload", "save", "ERROR", ex.getMessage());
+            logError(aesKeyDto.getServiceName(), "save", "ERROR", ex.getMessage());
         }
         return saveFileResp;
     }
