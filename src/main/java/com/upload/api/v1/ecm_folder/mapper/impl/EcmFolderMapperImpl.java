@@ -5,6 +5,10 @@ import com.upload.api.v1.ecm_folder.entity.EcmFolder;
 import com.upload.api.v1.ecm_folder.mapper.EcmFolderMapper;
 import java.lang.Override;
 import java.util.List;
+
+import com.upload.api.v1.ecm_upload.entity.EcmUpload;
+import com.upload.api.v1.enums.FolderStatus;
+import com.upload.constant.UploadConstant;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
@@ -33,4 +37,13 @@ public class EcmFolderMapperImpl implements EcmFolderMapper {
   public List<EcmFolderDto> toDto(List<EcmFolder> toDtoList) {
     return this.modelMapper.map(toDtoList, new org.modelmapper.TypeToken<List<EcmFolderDto>>() {}.getType());
   }
+
+    @Override
+    public EcmFolder mapEcmUploadToEcmFolder(String folderPath) {
+        EcmFolder ecmFolder = new EcmFolder();
+        ecmFolder.setFolderPath(folderPath);
+        ecmFolder.setIsExist(UploadConstant.IS_NOT_EXIST);
+        ecmFolder.setStatus(FolderStatus.INIT);
+        return ecmFolder;
+    }
 }

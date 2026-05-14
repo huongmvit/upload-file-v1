@@ -1,18 +1,13 @@
 package com.upload.api.v1.ecm_upload.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.upload.api.v1.enums.UploadStatus;
+import jakarta.persistence.*;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Instant;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+
+import lombok.*;
 
 @Entity
 @Table(
@@ -22,6 +17,7 @@ import lombok.Setter;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class EcmUpload implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -54,7 +50,8 @@ public class EcmUpload implements Serializable {
     @Column(
             name = "upload_status"
     )
-    private String uploadStatus;
+    @Enumerated(EnumType.STRING)
+    private UploadStatus uploadStatus;
 
     @Column(
             name = "created_by"
@@ -69,7 +66,7 @@ public class EcmUpload implements Serializable {
     @Column(
             name = "is_del"
     )
-    private String isDel;
+    private Integer isDel;
 
     @Column(
             name = "object_store"

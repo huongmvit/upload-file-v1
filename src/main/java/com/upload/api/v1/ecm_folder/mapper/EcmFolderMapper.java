@@ -2,6 +2,7 @@ package com.upload.api.v1.ecm_folder.mapper;
 
 import com.upload.api.v1.ecm_folder.dto.EcmFolderDto;
 import com.upload.api.v1.ecm_folder.entity.EcmFolder;
+import com.upload.api.v1.ecm_upload.entity.EcmUpload;
 import com.vn.lib.common.mapper.EntityMapper;
 import org.mapstruct.Mapper;
 
@@ -10,4 +11,5 @@ import org.mapstruct.Mapper;
     uses = {}
 )
 public interface EcmFolderMapper extends EntityMapper<EcmFolderDto, EcmFolder> {
+    EcmFolder mapEcmUploadToEcmFolder(String folderPath);
 }

@@ -2,6 +2,7 @@ package com.upload.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.upload.utils.TraceContext;
 import com.vn.lib.constant.http.CMHttpHeaders;
 import com.vn.lib.enu.user.UserRedis;
 import com.vn.lib.redis.UserRedisDto;
@@ -37,26 +38,28 @@ public class AppFilter extends OncePerRequestFilter {
         try {
 
             String header = request.getHeader(CMHttpHeaders.AUTHORIZATION);
-
+            String traceId = request.getHeader(CMHttpHeaders.X_TRACE_ID);
+            String merchant = request.getHeader(CMHttpHeaders.S_MERCHANT_ID);
+            if (traceId == null) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            }
+            if (merchant == null) {
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            }
+            TraceContext.setTrace(traceId);
+            TraceContext.setMerchant(merchant);
             // Không có token -> cho đi tiếp
             if (header == null || !header.startsWith(CMHttpHeaders.PREFIX)) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            String accessToken =
-                    UserRedis.USER +
-                            header.substring(CMHttpHeaders.PREFIX.length()).trim();
-
+            String accessToken = UserRedis.USER.toString().concat(header.substring(CMHttpHeaders.PREFIX.length()).trim());
             String redisJson = redisService.getFromKey(accessToken);
-
             if (redisJson != null) {
-
                 ObjectMapper mapper = new ObjectMapper();
                 mapper.registerModule(new JavaTimeModule());
-
-                UserRedisDto dto =
-                        mapper.readValue(redisJson, UserRedisDto.class);
+                UserRedisDto dto = mapper.readValue(redisJson, UserRedisDto.class);
 
                 List<SimpleGrantedAuthority> authorities = List.of(
                         new SimpleGrantedAuthority("SUPER_ADMIN")
@@ -82,9 +85,7 @@ public class AppFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
 
         } catch (Exception e) {
-
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-
         }
     }
 
