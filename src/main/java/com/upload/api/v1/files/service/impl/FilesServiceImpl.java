@@ -116,6 +116,7 @@ public class FilesServiceImpl implements FilesService {
             if (directory.exists()) {
                 return true;
             }
+            logError("Upload","save", "SUCCESS", folderPath);
             // Tạo nhiều cấp folder
             return directory.mkdirs();
         } catch (Exception ex) {
@@ -166,6 +167,7 @@ public class FilesServiceImpl implements FilesService {
             saveFileResp.setFileName(newFileName);
             saveFileResp.setFolderPath(folder);
             // Return path
+            logError("Upload","save", "SUCCESS", filePath.toString());
             return saveFileResp;
         } catch (Exception ex) {
             ex.printStackTrace();
