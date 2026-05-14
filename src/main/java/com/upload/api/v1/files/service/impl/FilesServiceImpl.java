@@ -31,6 +31,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
+import java.util.regex.Pattern;
 
 @RequiredArgsConstructor
 @Service
@@ -78,9 +80,9 @@ public class FilesServiceImpl implements FilesService {
         ecmUpload.setUrl(url);
         ecmUploadRepos.save(ecmUpload);
         // Lưu thông tin folder
-        saveEcmFolder(req.getFolderPath());
+        EcmFolder ecmFolder = saveEcmFolder(req.getFolderPath());
         // Lưu file
-        SaveFileResp saveFileResp = save(req.getDocuments(), ecmUpload.getFolderPath(), ecmUpload.getDocument());
+        SaveFileResp saveFileResp = save(req.getDocuments(), ecmFolder.getFolderPath(), ecmUpload.getDocument());
         CreateFileResp resp = new CreateFileResp();
         resp.setFileName(saveFileResp.getFileName());
         resp.setFolderPath(saveFileResp.getFolderPath());
@@ -135,6 +137,16 @@ public class FilesServiceImpl implements FilesService {
             String cleanFileName = Paths.get(fileName)
                     .getFileName()
                     .toString();
+            validateFileName(cleanFileName);
+            String extension = "";
+
+            int lastDot = cleanFileName.lastIndexOf(".");
+
+            if (lastDot > 0) {
+                extension = cleanFileName.substring(lastDot);
+            }
+
+            String newFileName = UUID.randomUUID() + extension;
 
             // Folder upload
             Path uploadPath = Paths.get(folder);
@@ -145,13 +157,13 @@ public class FilesServiceImpl implements FilesService {
             }
 
             // Full path file
-            Path filePath = uploadPath.resolve(cleanFileName);
+            Path filePath = uploadPath.resolve(newFileName);
 
             // Save file
             Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
             // set permission
             filePath.toFile().setReadable(true, false);
-            saveFileResp.setFileName(fileName);
+            saveFileResp.setFileName(newFileName);
             saveFileResp.setFolderPath(folder);
             // Return path
             return saveFileResp;
@@ -160,6 +172,44 @@ public class FilesServiceImpl implements FilesService {
             logError("Upload","save", "ERROR", ex.getMessage());
         }
         return saveFileResp;
+    }
+
+    public void validateFileName(String fileName) throws Exception {
+
+        if (fileName == null || fileName.isBlank()) {
+            throw new Exception("File name is empty");
+        }
+
+        // remove path
+        String cleanFileName = Paths.get(fileName)
+                .getFileName()
+                .toString();
+
+        // Không cho phép nhiều dấu chấm
+        long dotCount = cleanFileName.chars()
+                .filter(ch -> ch == '.')
+                .count();
+
+        if (dotCount > 1) {
+            throw new Exception("Invalid file name: multiple dots");
+        }
+
+        // Regex chỉ cho phép file có khoảng trắng
+        Pattern pattern = Pattern.compile("^[\\p{L}0-9._\\-() ]+$");
+
+        if (!pattern.matcher(cleanFileName).matches()) {
+            throw new Exception("Invalid file name: special characters detected");
+        }
+
+        // Không cho phép bắt đầu bằng dấu chấm
+        if (cleanFileName.startsWith(".")) {
+            throw new Exception("Hidden file is not allowed");
+        }
+
+        // Không cho phép ..
+        if (cleanFileName.contains("..")) {
+            throw new Exception("Path traversal detected");
+        }
     }
 
     public void logError(String urlApi,
