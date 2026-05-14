@@ -7,4 +7,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface EcmAuthRepos extends JpaRepository<EcmAuth, Long> {
+    EcmAuth findTopByClientSecret(String client);
 }

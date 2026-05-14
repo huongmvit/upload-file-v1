@@ -2,6 +2,8 @@ package com.upload.api.v1.files.service.impl;
 
 import com.upload.api.v1.ecm_audit_log.entity.EcmAuditLog;
 import com.upload.api.v1.ecm_audit_log.repo.EcmAuditLogRepos;
+import com.upload.api.v1.ecm_auth.entity.EcmAuth;
+import com.upload.api.v1.ecm_auth.repo.EcmAuthRepos;
 import com.upload.api.v1.ecm_folder.entity.EcmFolder;
 import com.upload.api.v1.ecm_folder.mapper.EcmFolderMapper;
 import com.upload.api.v1.ecm_folder.repo.EcmFolderRepos;
@@ -18,6 +20,8 @@ import com.upload.api.v1.files.resp.SaveFileResp;
 import com.upload.api.v1.files.service.FilesService;
 import com.upload.utils.TraceContext;
 import com.upload.constant.UploadConstant;
+import com.vn.lib.iam.auth.AesKeyDto;
+import com.vn.lib.utils.AesUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -51,6 +55,7 @@ public class FilesServiceImpl implements FilesService {
     private final EcmFolderMapper ecmFolderMapper;
 
     private final EcmAuditLogRepos ecmAuditLogRepos;
+    private final EcmAuthRepos ecmAuthRepos;
 
     @Override
     public CreateFileResp upload(CreateOneDocumentReq req) {
@@ -76,15 +81,31 @@ public class FilesServiceImpl implements FilesService {
     }
 
     private CreateFileResp saveOneFile(CreateOneDocumentReq req) {
+
+        if(req.getOcr() == null) {
+            req.setOcr("Y");
+        }
+        if(req.getFileDraft() == null) {
+            req.setOcr("N");
+        }
+        if(req.getDocumentClass() == null) {
+            req.setOcr("ALL");
+        }
+
         String traceId = TraceContext.getTrace();
         String merchant = TraceContext.getMerchant();
-        String url = "https://kimahome.vn";
-        // Lưu thông tin file upload
-        EcmUpload ecmUpload = ecmUploadMapper.mapReqToEcmUpload(req, traceId);
-        ecmUpload.setUrl(url);
-        ecmUploadRepos.save(ecmUpload);
+        AesKeyDto aesKeyDto = AesUtil.encryptDto(merchant);
+        EcmAuth ecmAuth = ecmAuthRepos.findTopByClientSecret(merchant);
+
         // Lưu thông tin folder
-        EcmFolder ecmFolder = saveEcmFolder(req.getFolderPath());
+        EcmFolder ecmFolder = saveEcmFolder(req.getFolderPath(), aesKeyDto);
+
+        // Lưu thông tin file upload
+        EcmUpload ecmUpload = ecmUploadMapper.mapReqToEcmUpload(req, traceId, aesKeyDto);
+        ecmUpload.setUrl(ecmAuth.getServerUrl());
+        ecmUpload.setFolderPath(ecmFolder.getFolderPath());
+        ecmUploadRepos.save(ecmUpload);
+
         // Lưu file
         SaveFileResp saveFileResp = save(req.getDocuments(), ecmFolder.getFolderPath(), ecmUpload.getDocument());
         CreateFileResp resp = new CreateFileResp();
@@ -95,16 +116,16 @@ public class FilesServiceImpl implements FilesService {
         return resp;
     }
 
-    private EcmFolder saveEcmFolder(String folderPath) {
+    private EcmFolder saveEcmFolder(String folderPath, AesKeyDto aesKeyDto) {
         if(folderPath == null || folderPath.isBlank()) {
             LocalDate now = LocalDate.now();
             String newFolder = now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
-            folderPath = rootUpload.concat(newFolder);
+            folderPath =  rootUpload.concat(aesKeyDto.getServiceName().concat(newFolder));
         } else {
-            folderPath = rootUpload.concat(folderPath);
+            folderPath = rootUpload.concat(aesKeyDto.getServiceName().concat(folderPath));
         }
         folderPath = folderPath.replaceAll("(?<!:)/{2,}", "/");
-        EcmFolder ecmFolder = ecmFolderMapper.mapEcmUploadToEcmFolder(folderPath);
+        EcmFolder ecmFolder = ecmFolderMapper.mapEcmUploadToEcmFolder(folderPath, aesKeyDto);
         if (createFolder(folderPath)) {
             ecmFolderRepos.save(ecmFolder);
         } else {

@@ -9,6 +9,7 @@ import java.util.List;
 import com.upload.api.v1.ecm_upload.entity.EcmUpload;
 import com.upload.api.v1.enums.FolderStatus;
 import com.upload.constant.UploadConstant;
+import com.vn.lib.iam.auth.AesKeyDto;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
@@ -39,14 +40,14 @@ public class EcmFolderMapperImpl implements EcmFolderMapper {
   }
 
     @Override
-    public EcmFolder mapEcmUploadToEcmFolder(String folderPath) {
+    public EcmFolder mapEcmUploadToEcmFolder(String folderPath, AesKeyDto aesKeyDto) {
         EcmFolder ecmFolder = new EcmFolder();
         ecmFolder.setFolderPath(folderPath);
         ecmFolder.setIsExist(UploadConstant.IS_NOT_EXIST);
         ecmFolder.setStatus(FolderStatus.INIT);
-        ecmFolder.setTenantId(0L);
+        ecmFolder.setTenantId(aesKeyDto.getTenantId());
         ecmFolder.setStoreId(0L);
-        ecmFolder.setBrandId(0L);
+        ecmFolder.setBrandId(aesKeyDto.getBrandId());
         return ecmFolder;
     }
 }

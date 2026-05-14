@@ -11,6 +11,7 @@ import java.util.UUID;
 import com.upload.api.v1.enums.UploadStatus;
 import com.upload.api.v1.files.req.CreateOneDocumentReq;
 import com.upload.constant.UploadConstant;
+import com.vn.lib.iam.auth.AesKeyDto;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
@@ -41,7 +42,7 @@ public class EcmUploadMapperImpl implements EcmUploadMapper {
   }
 
     @Override
-    public EcmUpload mapReqToEcmUpload(CreateOneDocumentReq req, String traceId) {
+    public EcmUpload mapReqToEcmUpload(CreateOneDocumentReq req, String traceId, AesKeyDto aesKeyDto) {
         EcmUpload ecmUpload = EcmUpload.builder()
                 .traceId(traceId)
                 .documentClass(req.getDocumentClass())
@@ -49,16 +50,15 @@ public class EcmUploadMapperImpl implements EcmUploadMapper {
                 .mimeType(req.getDocuments().getContentType())
                 .fileSize(BigDecimal.valueOf(req.getDocuments().getSize()))
                 .uploadStatus(UploadStatus.UPLOADING)
-//                .createdBy(createdBy)
+                .createdBy(aesKeyDto.getServiceName())
                 .isDel(UploadConstant.IS_NOT_DELETED)
                 .objectStore(UUID.randomUUID().toString())
                 .fileDraft(req.getFileDraft())
                 .ocr(req.getOcr())
                 .folderPath(req.getFolderPath())
-//                .url(url)
-                .tenantId(0L)
+                .tenantId(aesKeyDto.getTenantId())
                 .storeId(0L)
-                .brandId(0L)
+                .brandId(aesKeyDto.getBrandId())
                 .build();
         return ecmUpload;
     }

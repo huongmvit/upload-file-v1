@@ -4,6 +4,7 @@ import com.upload.api.v1.ecm_upload.dto.EcmUploadDto;
 import com.upload.api.v1.ecm_upload.entity.EcmUpload;
 import com.upload.api.v1.files.req.CreateOneDocumentReq;
 import com.vn.lib.common.mapper.EntityMapper;
+import com.vn.lib.iam.auth.AesKeyDto;
 import org.mapstruct.Mapper;
 
 @Mapper(
@@ -11,5 +12,5 @@ import org.mapstruct.Mapper;
     uses = {}
 )
 public interface EcmUploadMapper extends EntityMapper<EcmUploadDto, EcmUpload> {
-    EcmUpload mapReqToEcmUpload(CreateOneDocumentReq req, String traceId);
+    EcmUpload mapReqToEcmUpload(CreateOneDocumentReq req, String traceId, AesKeyDto aesKeyDto);
 }
