@@ -30,7 +30,6 @@ public class FilesController {
     )
     public ResponseApi upload(
             @ModelAttribute @Valid CreateOneDocumentReq req) {
-        System.out.println("upload");
         return new ResponseApi(filesService.upload(req));
     }
 
@@ -45,7 +44,6 @@ public class FilesController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseApi uploads(@ModelAttribute @Valid CreateMultiDocumentReq req) {
-        System.out.println("uploads");
         return new ResponseApi(filesService.uploads(req));
     }
 
