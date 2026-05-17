@@ -126,7 +126,7 @@ public class FilesServiceImpl implements FilesService {
     private EcmFolder saveEcmFolder(String folderPath, AesKeyDto aesKeyDto) {
         if (folderPath == null || folderPath.isBlank()) {
             LocalDate now = LocalDate.now();
-            folderPath = "/" + now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd"));
+            folderPath = "/" + now.format(DateTimeFormatter.ofPattern("yyyy/MM/dd")) + "/";
         }
         folderPath = folderPath.replaceAll("(?<!:)/{2,}", "/");
         return ecmFolderMapper.mapEcmUploadToEcmFolder(folderPath, aesKeyDto);
